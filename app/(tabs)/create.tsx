@@ -1,5 +1,11 @@
 import React from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import {
+    View,
+    Text,
+    ScrollView,
+    TouchableOpacity,
+    Image,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -8,12 +14,24 @@ import { SoftCard } from "@/components/ui/SoftCard";
 import { CreditBadge } from "@/components/ui/CreditBadge";
 import { useRoom } from "@/context/RoomContext";
 
+import {
+    featureStyleChange,
+    featureObjectRemove,
+    featureColorChange,
+    featureGardenRedesign,
+    paywallBefore, // Using generic interior images for others as placeholders if needed
+    roomExplore1,
+    roomExplore2,
+    demoRoom4,
+    demoRoom5,
+} from "@/assets";
+
 const features = [
     {
         id: "style",
         title: "Stil Değişikliği",
         description: "Odanızın stilini tamamen değiştirin",
-        icon: "brush-outline" as const,
+        image: featureStyleChange,
         credits: 8,
         route: "/style-change",
     },
@@ -21,7 +39,7 @@ const features = [
         id: "erase",
         title: "Obje Silme",
         description: "İstenmeyen nesneleri kaldırın",
-        icon: "trash-outline" as const,
+        image: featureObjectRemove,
         credits: 4,
         route: "/object-remove",
     },
@@ -29,7 +47,7 @@ const features = [
         id: "color",
         title: "Renk Değişikliği",
         description: "Duvar ve mobilya renklerini değiştirin",
-        icon: "color-palette-outline" as const,
+        image: featureColorChange,
         credits: 8,
         route: "/color-change",
     },
@@ -37,7 +55,7 @@ const features = [
         id: "garden",
         title: "Bahçe Tasarımı",
         description: "Bahçenizi yeniden tasarlayın",
-        icon: "leaf-outline" as const,
+        image: featureGardenRedesign,
         credits: 8,
         route: "/garden-redesign",
     },
@@ -45,7 +63,7 @@ const features = [
         id: "exterior",
         title: "Dış Cephe",
         description: "Evinizin dış görünümünü yenileyin",
-        icon: "home-outline" as const,
+        image: paywallBefore, // Placeholder using nice exterior/interior
         credits: 8,
         route: "/exterior-redesign",
     },
@@ -53,7 +71,7 @@ const features = [
         id: "furniture",
         title: "Mobilya Değiştir",
         description: "Mobilya stillerini değiştirin",
-        icon: "bed-outline" as const,
+        image: roomExplore1,
         credits: 8,
         route: "/furniture-replace",
     },
@@ -61,7 +79,7 @@ const features = [
         id: "fill",
         title: "Boşluk Doldur",
         description: "Eksik parçaları alana ekleyin",
-        icon: "add-circle-outline" as const,
+        image: roomExplore2,
         credits: 8,
         route: "/fill-spaces",
     },
@@ -69,7 +87,7 @@ const features = [
         id: "wall",
         title: "Duvar Yenile",
         description: "Duvarları yeniden tasarlayın",
-        icon: "layers-outline" as const,
+        image: demoRoom4,
         credits: 8,
         route: "/wall-refresh",
     },
@@ -77,7 +95,7 @@ const features = [
         id: "floor",
         title: "Zemin Değiştir",
         description: "Zeminlerinize yeni materyal uygulayın",
-        icon: "grid-outline" as const,
+        image: demoRoom5,
         credits: 8,
         route: "/floor-replace",
     },
@@ -120,9 +138,13 @@ export default function CreateScreen() {
                             >
                                 <SoftCard variant="elevated" padding="none" className="overflow-hidden">
                                     <View className="flex-row">
-                                        {/* Icon Section */}
-                                        <View className="w-28 h-28 bg-primary/10 items-center justify-center">
-                                            <Ionicons name={feature.icon} size={40} color="#E86A12" />
+                                        {/* Image Section */}
+                                        <View className="w-28 h-28 bg-muted">
+                                            <Image
+                                                source={feature.image}
+                                                className="w-full h-full"
+                                                resizeMode="cover"
+                                            />
                                         </View>
 
                                         {/* Content Section */}
@@ -133,7 +155,7 @@ export default function CreateScreen() {
                                                         {feature.title}
                                                     </Text>
                                                 </View>
-                                                <Text className="text-xs text-muted-foreground">
+                                                <Text className="text-xs text-muted-foreground" numberOfLines={2}>
                                                     {feature.description}
                                                 </Text>
                                             </View>

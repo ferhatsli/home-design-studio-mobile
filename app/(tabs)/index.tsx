@@ -7,6 +7,7 @@ import { MotiView } from "moti";
 import { SoftCard } from "@/components/ui/SoftCard";
 import { CreditBadge } from "@/components/ui/CreditBadge";
 import { useRoom } from "@/context/RoomContext";
+import { heroAfter } from "@/assets";
 
 const features = [
   {
@@ -107,20 +108,32 @@ export default function HomeScreen() {
           transition={{ type: "timing", duration: 500 }}
           className="px-4 mb-6"
         >
-          <SoftCard variant="elevated" padding="lg" className="bg-primary">
-            <Text className="text-white text-xl font-bold mb-2">
-              AI ile Odanızı Dönüştürün
-            </Text>
-            <Text className="text-white/80 text-sm mb-4">
-              Fotoğrafınızı yükleyin, stilinizi seçin ve anında sonucu görün
-            </Text>
-            <TouchableOpacity
-              onPress={() => router.push("/style-change")}
-              className="bg-white rounded-full py-3 px-6 self-start flex-row items-center"
-            >
-              <Text className="text-primary font-semibold mr-2">Başla</Text>
-              <Ionicons name="arrow-forward" size={16} color="#E86A12" />
-            </TouchableOpacity>
+          <SoftCard variant="elevated" padding="none" className="bg-primary overflow-hidden">
+            {/* Background Image */}
+            <Image
+              source={heroAfter}
+              className="absolute w-full h-full opacity-30"
+              resizeMode="cover"
+            />
+
+            {/* Overlay Gradient (optional, simulated with background color opacity) */}
+            <View className="absolute w-full h-full bg-primary/40" />
+
+            <View className="p-6 relative z-10">
+              <Text className="text-white text-xl font-bold mb-2">
+                AI ile Odanızı Dönüştürün
+              </Text>
+              <Text className="text-white/90 text-sm mb-4">
+                Fotoğrafınızı yükleyin, stilinizi seçin ve anında sonucu görün
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push("/style-change")}
+                className="bg-white rounded-full py-3 px-6 self-start flex-row items-center"
+              >
+                <Text className="text-primary font-semibold mr-2">Başla</Text>
+                <Ionicons name="arrow-forward" size={16} color="#E86A12" />
+              </TouchableOpacity>
+            </View>
           </SoftCard>
         </MotiView>
 
