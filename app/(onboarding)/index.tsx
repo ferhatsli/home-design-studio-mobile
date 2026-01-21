@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
     View,
     Text,
@@ -8,15 +8,18 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MotiView } from "moti";
+import { MotiView, AnimatePresence } from "moti";
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
     withRepeat,
     withTiming,
     Easing,
+    withSequence,
+    withDelay,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
+import Svg, { Polyline } from "react-native-svg";
 import { PillButton } from "@/components/ui/PillButton";
 
 import {
@@ -48,7 +51,7 @@ const slides = [
         color: "#F59E0B",
         beforeImage: objectBefore,
         afterImage: objectAfter,
-        type: "fade",
+        type: "object",
     },
     {
         icon: "color-palette-outline" as const,
@@ -61,6 +64,196 @@ const slides = [
         type: "slider",
     },
 ];
+
+// Brush stroke path for painting animation - Shifted +2% X, +9% Y
+const brushPath = [
+    { x: 64, y: 59 }, { x: 67, y: 57 }, { x: 70, y: 56 }, { x: 73, y: 57 }, { x: 76, y: 59 },
+    { x: 63, y: 65 }, { x: 66, y: 63 }, { x: 70, y: 62 }, { x: 74, y: 63 }, { x: 77, y: 65 },
+    { x: 62, y: 73 }, { x: 66, y: 71 }, { x: 70, y: 70 }, { x: 74, y: 71 }, { x: 78, y: 73 },
+    { x: 64, y: 81 }, { x: 68, y: 79 }, { x: 72, y: 79 }, { x: 76, y: 81 },
+];
+
+const ObjectRemovalAnimation = ({
+    beforeImage,
+    afterImage,
+}: {
+    beforeImage: any;
+    afterImage: any;
+}) => {
+    const [phase, setPhase] = useState<'before' | 'painting' | 'painted' | 'removing' | 'after'>('before');
+    const [points, setPoints] = useState<string>("");
+    const [currentPoint, setCurrentPoint] = useState<{ x: number, y: number } | null>(null);
+
+    // Dimensions for the image/svg container
+    const imgWidth = width - 48; // px-6 padding total 48
+    const imgHeight = 192; // h-48
+
+    useEffect(() => {
+        let isCancelled = false;
+
+        const delay = (ms: number) => new Promise<void>(resolve => {
+            const timeout = setTimeout(() => {
+                if (!isCancelled) resolve();
+            }, ms);
+        });
+
+        const runAnimation = async () => {
+            if (isCancelled) return;
+
+            // Reset
+            setPhase('before');
+            setPoints("");
+            setCurrentPoint(null);
+
+            await delay(800);
+            if (isCancelled) return;
+
+            // Start Painting
+            setPhase('painting');
+            let currentPointsStr = "";
+
+            for (const point of brushPath) {
+                if (isCancelled) return;
+                // Convert percentage to pixels
+                const px = (point.x / 100) * imgWidth;
+                const py = (point.y / 100) * imgHeight;
+
+                currentPointsStr += `${px},${py} `;
+                setPoints(currentPointsStr);
+                setCurrentPoint({ x: px, y: py });
+
+                await delay(60); // Creating stroke effect
+            }
+
+            if (isCancelled) return;
+            setCurrentPoint(null);
+            setPhase('painted');
+
+            await delay(600);
+            if (isCancelled) return;
+
+            setPhase('removing');
+            await delay(800);
+            if (isCancelled) return;
+
+            setPhase('after');
+            await delay(2500); // Show result for longer
+
+            if (isCancelled) return;
+            // Loop
+            runAnimation();
+        };
+
+        runAnimation();
+
+        return () => { isCancelled = true; };
+    }, [imgWidth]);
+
+    return (
+        <View className="relative w-full h-48 rounded-3xl overflow-hidden bg-muted/20">
+            {/* Before Image */}
+            <MotiView
+                className="absolute w-full h-full"
+                animate={{ opacity: phase === 'after' ? 0 : 1 }}
+                transition={{ type: "timing", duration: 500 }}
+            >
+                <Image source={beforeImage} className="w-full h-full" resizeMode="cover" />
+            </MotiView>
+
+            {/* After Image */}
+            <MotiView
+                className="absolute w-full h-full"
+                animate={{ opacity: phase === 'after' ? 1 : 0 }}
+                transition={{ type: "timing", duration: 500 }}
+            >
+                <Image source={afterImage} className="w-full h-full" resizeMode="cover" />
+            </MotiView>
+
+            {/* SVG Canvas for Painting */}
+            {phase !== 'after' && (
+                <View className="absolute inset-0 w-full h-full pointer-events-none">
+                    <Svg height="100%" width="100%" viewBox={`0 0 ${imgWidth} ${imgHeight}`}>
+                        <Polyline
+                            points={points}
+                            fill="none"
+                            stroke="rgba(255, 100, 100, 0.6)"
+                            strokeWidth="24"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        />
+                    </Svg>
+                </View>
+            )}
+
+            {/* Brush Cursor */}
+            <AnimatePresence>
+                {phase === 'painting' && currentPoint && (
+                    <MotiView
+                        from={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1, translateX: currentPoint.x - 16, translateY: currentPoint.y - 16 }}
+                        exit={{ opacity: 0, scale: 0 }}
+                        transition={{ type: "spring", damping: 20 }}
+                        className="absolute w-8 h-8 rounded-full border-2 border-white bg-primary/30 z-20"
+                    >
+                        <View className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full items-center justify-center shadow-lg">
+                            <Ionicons name="trash-outline" size={10} color="white" />
+                        </View>
+                    </MotiView>
+                )}
+            </AnimatePresence>
+
+            {/* Sparkles effect for removing phase */}
+            <AnimatePresence>
+                {phase === 'removing' && (
+                    <View className="absolute inset-0 items-center justify-center">
+                        {/* Center Glow */}
+                        <MotiView
+                            from={{ scale: 0.5, opacity: 1 }}
+                            animate={{ scale: 2, opacity: 0 }}
+                            transition={{ type: "timing", duration: 500 }}
+                            className="w-16 h-16 rounded-full bg-primary/40 absolute"
+                            style={{ left: (70 / 100) * imgWidth, top: (72 / 100) * imgHeight }}
+                        />
+
+                        {/* Particles */}
+                        {[...Array(6)].map((_, i) => (
+                            <MotiView
+                                key={i}
+                                className="absolute w-2 h-2 bg-primary rounded-full"
+                                style={{ left: (70 / 100) * imgWidth, top: (72 / 100) * imgHeight }}
+                                from={{ opacity: 1, scale: 1, translateX: 0, translateY: 0 }}
+                                animate={{
+                                    opacity: 0,
+                                    scale: 0,
+                                    translateX: Math.cos(i * Math.PI / 3) * 50,
+                                    translateY: Math.sin(i * Math.PI / 3) * 50,
+                                }}
+                                transition={{ type: "timing", duration: 600 }}
+                            />
+                        ))}
+                    </View>
+                )}
+            </AnimatePresence>
+
+            {/* Status Label */}
+            <MotiView
+                className="absolute bottom-3 left-1/2 px-3 py-1.5 rounded-full z-30"
+                style={{ transform: [{ translateX: -40 }] }} // Center approximation
+                animate={{
+                    backgroundColor: phase === 'after' ? '#E86A12' : 'rgba(0,0,0,0.6)',
+                }}
+            >
+                <Text className="text-white text-xs font-medium">
+                    {phase === 'before' && 'Silmek istediğiniz alanı çizin'}
+                    {phase === 'painting' && 'Boyama...'}
+                    {phase === 'painted' && 'Seçildi ✓'}
+                    {phase === 'removing' && 'Siliniyor...'}
+                    {phase === 'after' && 'Tamamlandı! ✨'}
+                </Text>
+            </MotiView>
+        </View>
+    );
+};
 
 // Animated slider comparison component
 const SliderComparison = ({
@@ -117,76 +310,7 @@ const SliderComparison = ({
                 <Text className="text-white text-xs">Sonra</Text>
             </View>
 
-            {/* Slider Line */}
-            <Animated.View
-                className="absolute top-0 bottom-0 w-0.5 bg-white items-center justify-center"
-                style={[sliderLineStyle, { transform: [{ translateX: -1 }] }]}
-            >
-                <View className="w-8 h-8 bg-white rounded-full items-center justify-center shadow-lg">
-                    <View className="flex-row gap-0.5">
-                        <View className="w-0.5 h-3 bg-gray-400 rounded-full" />
-                        <View className="w-0.5 h-3 bg-gray-400 rounded-full" />
-                    </View>
-                </View>
-            </Animated.View>
-        </View>
-    );
-};
-
-// Fade animation comparison
-const FadeComparison = ({
-    beforeImage,
-    afterImage,
-}: {
-    beforeImage: any;
-    afterImage: any;
-}) => {
-    const [showAfter, setShowAfter] = useState(false);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setShowAfter((prev) => !prev);
-        }, 2000);
-        return () => clearInterval(interval);
-    }, []);
-
-    return (
-        <View className="relative w-full h-48 rounded-3xl overflow-hidden">
-            <MotiView
-                animate={{ opacity: showAfter ? 0 : 1 }}
-                transition={{ type: "timing", duration: 500 }}
-                className="absolute w-full h-full"
-            >
-                <Image
-                    source={beforeImage}
-                    className="w-full h-full"
-                    resizeMode="cover"
-                />
-            </MotiView>
-            <MotiView
-                animate={{ opacity: showAfter ? 1 : 0 }}
-                transition={{ type: "timing", duration: 500 }}
-                className="absolute w-full h-full"
-            >
-                <Image
-                    source={afterImage}
-                    className="w-full h-full"
-                    resizeMode="cover"
-                />
-            </MotiView>
-
-            {/* Label */}
-            <MotiView
-                className="absolute bottom-3 left-1/2 px-3 py-1.5 rounded-full"
-                animate={{
-                    backgroundColor: showAfter ? "#E86A12" : "rgba(0,0,0,0.6)",
-                }}
-                style={{ transform: [{ translateX: -40 }] }}
-            >
-                <Text className="text-white text-xs font-medium">
-                    {showAfter ? "Tamamlandı! ✨" : "Siliniyor..."}
-                </Text>
-            </MotiView>
+            {/* Slider Line/Handle Removed as per request */}
         </View>
     );
 };
@@ -207,16 +331,21 @@ export default function OnboardingScreen() {
         router.replace("/(tabs)");
     };
 
+    // Render appropriate comparison based on slide type
     const renderComparison = () => {
         const slide = slides[currentSlide];
-        if (slide.type === "fade") {
+
+        // Custom animation for object removal
+        if (slide.type === "object") {
             return (
-                <FadeComparison
+                <ObjectRemovalAnimation
                     beforeImage={slide.beforeImage}
                     afterImage={slide.afterImage}
                 />
             );
         }
+
+        // Slider for everything else (Style, Color)
         return (
             <SliderComparison
                 beforeImage={slide.beforeImage}
@@ -281,8 +410,8 @@ export default function OnboardingScreen() {
                         >
                             <View
                                 className={`h-2 rounded-full ${index === currentSlide
-                                        ? "w-8 bg-primary"
-                                        : "w-2 bg-muted-foreground/30"
+                                    ? "w-8 bg-primary"
+                                    : "w-2 bg-muted-foreground/30"
                                     }`}
                             />
                         </TouchableOpacity>
