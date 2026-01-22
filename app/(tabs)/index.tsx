@@ -119,7 +119,7 @@ const HeroBanner = () => {
   const sliderPosition = useSharedValue(0);
 
   useEffect(() => {
-    // Auto-oscillating effect matching web
+    // Auto-oscillating effect matching web exactly
     sliderPosition.value = withRepeat(
       withTiming(100, { duration: 3000, easing: Easing.inOut(Easing.sin) }),
       -1,
@@ -127,8 +127,9 @@ const HeroBanner = () => {
     );
   }, []);
 
+  // Before image clip - same as web: clipPath: inset(0 ${100 - sliderPosition}% 0 0)
   const clipStyle = useAnimatedStyle(() => ({
-    width: `${100 - sliderPosition.value}%`,
+    width: `${sliderPosition.value}%`,
   }));
 
   const lineStyle = useAnimatedStyle(() => ({
@@ -145,36 +146,21 @@ const HeroBanner = () => {
       <View className="rounded-3xl overflow-hidden shadow-lg bg-background">
         {/* Image Comparison Slider */}
         <View className="relative w-full aspect-[16/9]">
-          {/* After Image (Background) */}
+          {/* After Image (Background) - full width */}
           <Image
             source={heroAfter}
             className="absolute w-full h-full"
             resizeMode="cover"
           />
 
-          {/* Before Image (Clipped) */}
+          {/* Before Image (Clipped from left) - matches web clipPath */}
           <Animated.View
-            className="absolute top-0 right-0 bottom-0 overflow-hidden"
+            className="absolute top-0 left-0 bottom-0 overflow-hidden"
             style={clipStyle}
           >
-            {/* 
-                           To keep the image static while clipping its container, 
-                           we need to position it absolutely left aligned relative to the main container.
-                           Since this container is right-aligned, we can't just set width 100%.
-                           Instead, we place the image relative to screen width or fixed container width.
-                           However, easier way in RN:
-                           Just use the same image with absolute positioning but use a masking view.
-                           OR simpler: Render image full width inside, but let the parent clip it.
-                           Since 'right: 0' and 'width: X%', the content inside needs to be aligned to right 
-                           to counteract the container movement if we want parallax, but we want static crop.
-                           
-                           Actually, standard practice for "reveal" from right:
-                           Container anchored Right. Width animates.
-                           Image inside anchored Right. Width fixed to parent width.
-                         */}
             <Image
               source={heroBefore}
-              style={{ width: width - 32, height: '100%' }} // main padding px-4 = 32
+              style={{ width: width - 32, height: '100%' }}
               resizeMode="cover"
             />
           </Animated.View>
@@ -182,15 +168,15 @@ const HeroBanner = () => {
           {/* Slider Line */}
           <Animated.View
             className="absolute top-0 bottom-0 w-1 bg-white shadow-lg z-10"
-            style={lineStyle}
+            style={[lineStyle, { transform: [{ translateX: -2 }] }]}
           />
         </View>
 
-        {/* Footer */}
+        {/* Footer - same as web */}
         <View className="bg-primary px-5 py-3 flex-row items-center justify-between">
           <View>
             <Text className="text-lg font-bold text-white">Anında Yenile</Text>
-            <Text className="text-xs text-white/80">Mekanını Saniyeler İçinde Dönüştür</Text>
+            <Text className="text-xs text-white/70">Mekanını Saniyeler İçinde Dönüştür</Text>
           </View>
           <TouchableOpacity
             onPress={() => router.push("/style-change")}
