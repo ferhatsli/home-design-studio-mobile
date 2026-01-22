@@ -11,7 +11,7 @@ import { useRoom } from "@/context/RoomContext";
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 48) / 2;
 
-const styles = [
+const designStyles = [
     { id: "modern", name: "Modern", emoji: "🏢" },
     { id: "japanese", name: "Japon", emoji: "🎋" },
     { id: "tropical", name: "Tropikal", emoji: "🌴" },
@@ -56,7 +56,7 @@ export default function GardenStyleScreen() {
 
                 <Text className="text-base font-semibold text-foreground mb-4">Bahçe Stili Seçin</Text>
                 <View className="flex-row flex-wrap justify-between">
-                    {styles.map((style, index) => (
+                    {designStyles.map((style, index) => (
                         <MotiView key={style.id} from={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "timing", duration: 300, delay: index * 30 }}>
                             <TouchableOpacity onPress={() => handleStyleSelect(style.name)} className="mb-4" style={{ width: CARD_WIDTH }}>
                                 <View className={`h-24 rounded-2xl items-center justify-center ${selectedStyle === style.name ? "bg-primary" : "bg-card shadow-sm"}`}>

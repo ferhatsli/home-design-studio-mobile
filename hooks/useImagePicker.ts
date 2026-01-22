@@ -1,6 +1,5 @@
 import { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system";
 import Toast from "react-native-toast-message";
 
 interface UseImagePickerOptions {
@@ -30,18 +29,6 @@ export const useImagePicker = (options: UseImagePickerOptions = {}) => {
         return true;
     };
 
-    const convertToBase64 = async (uri: string): Promise<string> => {
-        try {
-            const base64 = await FileSystem.readAsStringAsync(uri, {
-                encoding: FileSystem.EncodingType.Base64,
-            });
-            return `data:image/jpeg;base64,${base64}`;
-        } catch (error) {
-            console.error("Error converting to base64:", error);
-            throw error;
-        }
-    };
-
     const pickFromGallery = async (): Promise<string | null> => {
         setIsLoading(true);
         try {
@@ -53,14 +40,22 @@ export const useImagePicker = (options: UseImagePickerOptions = {}) => {
                 allowsEditing: true,
                 aspect: [4, 3],
                 quality,
+                base64: true, // Request base64 directly from ImagePicker
             });
 
             if (result.canceled || !result.assets[0]) {
                 return null;
             }
 
-            const base64 = await convertToBase64(result.assets[0].uri);
-            return base64;
+            const asset = result.assets[0];
+
+            // Use base64 from ImagePicker if available, otherwise use URI
+            if (asset.base64) {
+                return `data:image/jpeg;base64,${asset.base64}`;
+            }
+
+            // Fallback to URI if base64 not available
+            return asset.uri;
         } catch (error) {
             console.error("Error picking image:", error);
             Toast.show({
@@ -84,14 +79,22 @@ export const useImagePicker = (options: UseImagePickerOptions = {}) => {
                 allowsEditing: true,
                 aspect: [4, 3],
                 quality,
+                base64: true, // Request base64 directly from ImagePicker
             });
 
             if (result.canceled || !result.assets[0]) {
                 return null;
             }
 
-            const base64 = await convertToBase64(result.assets[0].uri);
-            return base64;
+            const asset = result.assets[0];
+
+            // Use base64 from ImagePicker if available, otherwise use URI
+            if (asset.base64) {
+                return `data:image/jpeg;base64,${asset.base64}`;
+            }
+
+            // Fallback to URI if base64 not available
+            return asset.uri;
         } catch (error) {
             console.error("Error taking photo:", error);
             Toast.show({

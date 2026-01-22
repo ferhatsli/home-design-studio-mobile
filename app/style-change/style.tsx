@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { MotiView } from "moti";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { PillButton } from "@/components/ui/PillButton";
 import { CreditBadge } from "@/components/ui/CreditBadge";
 import { useRoom } from "@/context/RoomContext";
@@ -18,7 +18,7 @@ import { useRoom } from "@/context/RoomContext";
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 48) / 2;
 
-const styles = [
+const designStyles = [
     { id: "modern", name: "Modern", emoji: "🏢" },
     { id: "scandinavian", name: "İskandinav", emoji: "🌲" },
     { id: "minimalist", name: "Minimalist", emoji: "⬜" },
@@ -43,9 +43,9 @@ export default function StyleSelectScreen() {
     } = useRoom();
     const [selectedStyle, setSelectedStyle] = useState(designStyle);
 
-    const handleStyleSelect = (style: string) => {
-        setSelectedStyle(style);
-        setDesignStyle(style);
+    const handleStyleSelect = (styleName: string) => {
+        setSelectedStyle(styleName);
+        setDesignStyle(styleName);
     };
 
     const handleGenerate = () => {
@@ -91,36 +91,43 @@ export default function StyleSelectScreen() {
                     Tarz Seçin
                 </Text>
                 <View className="flex-row flex-wrap justify-between">
-                    {styles.map((style, index) => (
-                        <MotiView
-                            key={style.id}
-                            from={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ type: "timing", duration: 300, delay: index * 30 }}
+                    {designStyles.map((item, index) => (
+                        <Animated.View
+                            key={item.id}
+                            entering={FadeIn.delay(index * 30).duration(300)}
+                            style={{ width: CARD_WIDTH, marginBottom: 16 }}
                         >
                             <TouchableOpacity
-                                onPress={() => handleStyleSelect(style.name)}
-                                className="mb-4"
-                                style={{ width: CARD_WIDTH }}
+                                onPress={() => handleStyleSelect(item.name)}
+                                activeOpacity={0.7}
                             >
                                 <View
-                                    className={`h-24 rounded-2xl items-center justify-center ${selectedStyle === style.name
-                                            ? "bg-primary"
-                                            : "bg-card shadow-sm"
-                                        }`}
+                                    style={{
+                                        height: 96,
+                                        borderRadius: 16,
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        backgroundColor: selectedStyle === item.name ? "#E86A12" : "#FFFFFF",
+                                        shadowColor: "#000",
+                                        shadowOffset: { width: 0, height: 1 },
+                                        shadowOpacity: 0.1,
+                                        shadowRadius: 2,
+                                        elevation: 2,
+                                    }}
                                 >
-                                    <Text className="text-3xl mb-1">{style.emoji}</Text>
+                                    <Text style={{ fontSize: 30, marginBottom: 4 }}>{item.emoji}</Text>
                                     <Text
-                                        className={`font-medium text-sm ${selectedStyle === style.name
-                                                ? "text-white"
-                                                : "text-foreground"
-                                            }`}
+                                        style={{
+                                            fontWeight: "500",
+                                            fontSize: 14,
+                                            color: selectedStyle === item.name ? "#FFFFFF" : "#1A1A1A",
+                                        }}
                                     >
-                                        {style.name}
+                                        {item.name}
                                     </Text>
                                 </View>
                             </TouchableOpacity>
-                        </MotiView>
+                        </Animated.View>
                     ))}
                 </View>
             </ScrollView>
