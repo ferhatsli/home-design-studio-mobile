@@ -206,7 +206,6 @@ const HeroBanner = () => {
 };
 
 export default function HomeScreen() {
-  console.log("HomeScreen rendering...");
   const router = useRouter();
   const { credits } = useRoom();
 
