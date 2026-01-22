@@ -1,81 +1,212 @@
-import React from "react";
-import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  Easing
+} from "react-native-reanimated";
 import { SoftCard } from "@/components/ui/SoftCard";
 import { CreditBadge } from "@/components/ui/CreditBadge";
 import { useRoom } from "@/context/RoomContext";
-import { heroAfter } from "@/assets";
+import {
+  heroBefore,
+  heroAfter,
+  styleBefore,
+  styleAfter,
+  objectRemoveBefore,
+  objectRemoveAfter,
+  inspirationBefore3,
+  inspirationAfter3,
+  demoGardenFront,
+  demoGardenTerrace,
+  exteriorBefore,
+  exteriorAfter,
+  inspirationBefore5,
+  inspirationAfter5,
+  inspirationBefore6,
+  inspirationAfter6,
+  inspirationBefore7,
+  inspirationAfter7,
+  inspirationBefore8,
+  inspirationAfter8
+} from "@/assets";
+
+const { width } = Dimensions.get("window");
 
 const features = [
   {
     id: "style",
     title: "Stil Değişikliği",
     description: "Odanızın stilini tamamen değiştirin",
-    icon: "brush-outline" as const,
+    beforeImage: styleBefore,
+    afterImage: styleAfter,
     route: "/style-change",
   },
   {
     id: "erase",
     title: "Obje Silme",
     description: "İstenmeyen nesneleri kaldırın",
-    icon: "trash-outline" as const,
+    beforeImage: objectRemoveBefore,
+    afterImage: objectRemoveAfter,
     route: "/object-remove",
   },
   {
     id: "color",
     title: "Renk Değişikliği",
     description: "Duvar ve mobilya renklerini değiştirin",
-    icon: "color-palette-outline" as const,
+    beforeImage: inspirationBefore3,
+    afterImage: inspirationAfter3,
     route: "/color-change",
   },
   {
     id: "garden",
     title: "Bahçe Tasarımı",
     description: "Bahçenizi yeniden tasarlayın",
-    icon: "leaf-outline" as const,
+    beforeImage: demoGardenFront,
+    afterImage: demoGardenTerrace,
     route: "/garden-redesign",
   },
   {
     id: "exterior",
     title: "Dış Cephe",
     description: "Evinizin dış görünümünü yenileyin",
-    icon: "home-outline" as const,
+    beforeImage: exteriorBefore,
+    afterImage: exteriorAfter,
     route: "/exterior-redesign",
   },
   {
     id: "furniture",
     title: "Mobilya Değiştir",
     description: "Mobilya stillerini değiştirin",
-    icon: "bed-outline" as const,
+    beforeImage: inspirationBefore5,
+    afterImage: inspirationAfter5,
     route: "/furniture-replace",
   },
   {
     id: "fill",
     title: "Boşluk Doldur",
     description: "Eksik parçaları alana ekleyin",
-    icon: "add-circle-outline" as const,
+    beforeImage: inspirationBefore6,
+    afterImage: inspirationAfter6,
     route: "/fill-spaces",
   },
   {
     id: "wall",
     title: "Duvar Yenile",
     description: "Duvarları yeniden tasarlayın",
-    icon: "layers-outline" as const,
+    beforeImage: inspirationBefore7,
+    afterImage: inspirationAfter7,
     route: "/wall-refresh",
   },
   {
     id: "floor",
     title: "Zemin Değiştir",
     description: "Zeminlerinize yeni materyal uygulayın",
-    icon: "grid-outline" as const,
+    beforeImage: inspirationBefore8,
+    afterImage: inspirationAfter8,
     route: "/floor-replace",
   },
 ];
 
+const HeroBanner = () => {
+  const router = useRouter();
+  const sliderPosition = useSharedValue(0);
+
+  useEffect(() => {
+    // Auto-oscillating effect matching web
+    sliderPosition.value = withRepeat(
+      withTiming(100, { duration: 3000, easing: Easing.inOut(Easing.sin) }),
+      -1,
+      true
+    );
+  }, []);
+
+  const clipStyle = useAnimatedStyle(() => ({
+    width: `${100 - sliderPosition.value}%`,
+  }));
+
+  const lineStyle = useAnimatedStyle(() => ({
+    left: `${sliderPosition.value}%`,
+  }));
+
+  return (
+    <MotiView
+      from={{ opacity: 0, translateY: 20 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: "timing", duration: 500, delay: 100 }}
+      className="px-4 mb-6"
+    >
+      <View className="rounded-3xl overflow-hidden shadow-lg bg-background">
+        {/* Image Comparison Slider */}
+        <View className="relative w-full aspect-[16/9]">
+          {/* After Image (Background) */}
+          <Image
+            source={heroAfter}
+            className="absolute w-full h-full"
+            resizeMode="cover"
+          />
+
+          {/* Before Image (Clipped) */}
+          <Animated.View
+            className="absolute top-0 right-0 bottom-0 overflow-hidden"
+            style={clipStyle}
+          >
+            {/* 
+                           To keep the image static while clipping its container, 
+                           we need to position it absolutely left aligned relative to the main container.
+                           Since this container is right-aligned, we can't just set width 100%.
+                           Instead, we place the image relative to screen width or fixed container width.
+                           However, easier way in RN:
+                           Just use the same image with absolute positioning but use a masking view.
+                           OR simpler: Render image full width inside, but let the parent clip it.
+                           Since 'right: 0' and 'width: X%', the content inside needs to be aligned to right 
+                           to counteract the container movement if we want parallax, but we want static crop.
+                           
+                           Actually, standard practice for "reveal" from right:
+                           Container anchored Right. Width animates.
+                           Image inside anchored Right. Width fixed to parent width.
+                         */}
+            <Image
+              source={heroBefore}
+              style={{ width: width - 32, height: '100%' }} // main padding px-4 = 32
+              resizeMode="cover"
+            />
+          </Animated.View>
+
+          {/* Slider Line */}
+          <Animated.View
+            className="absolute top-0 bottom-0 w-1 bg-white shadow-lg z-10"
+            style={lineStyle}
+          />
+        </View>
+
+        {/* Footer */}
+        <View className="bg-primary px-5 py-3 flex-row items-center justify-between">
+          <View>
+            <Text className="text-lg font-bold text-white">Anında Yenile</Text>
+            <Text className="text-xs text-white/80">Mekanını Saniyeler İçinde Dönüştür</Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => router.push("/style-change")}
+            className="bg-white rounded-full px-5 py-2 flex-row items-center gap-1"
+          >
+            <Text className="text-primary font-medium text-sm">Dene</Text>
+            <Ionicons name="chevron-forward" size={16} color="#E86A12" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </MotiView>
+  );
+};
+
 export default function HomeScreen() {
+  console.log("HomeScreen rendering...");
   const router = useRouter();
   const { credits } = useRoom();
 
@@ -102,47 +233,14 @@ export default function HomeScreen() {
         </View>
 
         {/* Hero Banner */}
-        <MotiView
-          from={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: "timing", duration: 500 }}
-          className="px-4 mb-6"
-        >
-          <SoftCard variant="elevated" padding="none" className="bg-primary overflow-hidden">
-            {/* Background Image */}
-            <Image
-              source={heroAfter}
-              className="absolute w-full h-full opacity-30"
-              resizeMode="cover"
-            />
-
-            {/* Overlay Gradient (optional, simulated with background color opacity) */}
-            <View className="absolute w-full h-full bg-primary/40" />
-
-            <View className="p-6 relative z-10">
-              <Text className="text-white text-xl font-bold mb-2">
-                AI ile Odanızı Dönüştürün
-              </Text>
-              <Text className="text-white/90 text-sm mb-4">
-                Fotoğrafınızı yükleyin, stilinizi seçin ve anında sonucu görün
-              </Text>
-              <TouchableOpacity
-                onPress={() => router.push("/style-change")}
-                className="bg-white rounded-full py-3 px-6 self-start flex-row items-center"
-              >
-                <Text className="text-primary font-semibold mr-2">Başla</Text>
-                <Ionicons name="arrow-forward" size={16} color="#E86A12" />
-              </TouchableOpacity>
-            </View>
-          </SoftCard>
-        </MotiView>
+        <HeroBanner />
 
         {/* Features Section */}
         <View className="px-4">
           <Text className="text-lg font-semibold text-foreground mb-4">
             Özellikler
           </Text>
-          <View className="gap-3">
+          <View className="gap-4">
             {features.map((feature, index) => (
               <MotiView
                 key={feature.id}
@@ -150,31 +248,46 @@ export default function HomeScreen() {
                 animate={{ opacity: 1, translateY: 0 }}
                 transition={{ type: "timing", duration: 400, delay: index * 50 }}
               >
-                <TouchableOpacity onPress={() => router.push(feature.route as any)}>
-                  <SoftCard variant="elevated" padding="none">
-                    <View className="flex-row items-center p-4">
-                      <View className="w-12 h-12 bg-accent rounded-2xl items-center justify-center mr-4">
-                        <Ionicons
-                          name={feature.icon}
-                          size={24}
-                          color="#E86A12"
-                        />
-                      </View>
-                      <View className="flex-1">
-                        <Text className="text-foreground font-semibold">
-                          {feature.title}
-                        </Text>
-                        <Text className="text-muted-foreground text-sm mt-0.5">
-                          {feature.description}
-                        </Text>
-                      </View>
-                      <Ionicons
-                        name="chevron-forward"
-                        size={20}
-                        color="#737373"
+                <TouchableOpacity
+                  onPress={() => router.push(feature.route as any)}
+                  className="rounded-3xl overflow-hidden shadow-sm bg-card mb-2"
+                >
+                  {/* Before/After Split Images */}
+                  <View className="relative h-44 flex-row">
+                    {/* Before - Left */}
+                    <View className="flex-1 overflow-hidden relative">
+                      <Image
+                        source={feature.beforeImage}
+                        className="w-full h-full"
+                        resizeMode="cover"
                       />
                     </View>
-                  </SoftCard>
+
+                    {/* After - Right */}
+                    <View className="flex-1 overflow-hidden relative">
+                      <Image
+                        source={feature.afterImage}
+                        className="w-full h-full"
+                        resizeMode="cover"
+                      />
+                    </View>
+
+                    {/* Divider */}
+                    <View className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-white/30 -ml-[0.5px]" />
+                  </View>
+
+                  {/* Footer */}
+                  <View className="bg-primary px-4 py-3 flex-row items-center justify-between">
+                    <View className="flex-1 py-1">
+                      <Text className="font-semibold text-white text-base">{feature.title}</Text>
+                      <Text className="text-sm text-white/80" numberOfLines={1}>{feature.description}</Text>
+                    </View>
+
+                    <View className="bg-white rounded-full px-4 py-2 flex-row items-center gap-1 ml-3">
+                      <Text className="text-primary font-medium text-sm">Dene</Text>
+                      <Ionicons name="chevron-forward" size={16} color="#E86A12" />
+                    </View>
+                  </View>
                 </TouchableOpacity>
               </MotiView>
             ))}
