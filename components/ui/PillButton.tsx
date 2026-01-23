@@ -1,13 +1,13 @@
 import React from "react";
 import {
     TouchableOpacity,
-    Text,
     View,
     ActivityIndicator,
     TouchableOpacityProps,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import { ThemedText } from "./ThemedText";
 
 interface PillButtonProps extends TouchableOpacityProps {
     children: React.ReactNode;
@@ -61,12 +61,13 @@ export const PillButton: React.FC<PillButtonProps> = ({
             ) : (
                 <>
                     {icon && iconPosition === "left" && icon}
-                    <Text
-                        className={`font-semibold ${textSizeStyles[size]} ${variant === "outline" ? "text-primary" : "text-white"
+                    <ThemedText
+                        weight="semibold"
+                        className={`${textSizeStyles[size]} ${variant === "outline" ? "text-primary" : "text-white"
                             }`}
                     >
                         {children}
-                    </Text>
+                    </ThemedText>
                     {icon && iconPosition === "right" && icon}
                 </>
             )}

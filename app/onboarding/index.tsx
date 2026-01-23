@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
     View,
-    Text,
     Image,
     Dimensions,
     TouchableOpacity,
 } from "react-native";
+import { ThemedText } from "@/components/ui";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MotiView, AnimatePresence } from "moti";
@@ -243,13 +243,13 @@ const ObjectRemovalAnimation = ({
                     backgroundColor: phase === 'after' ? '#E86A12' : 'rgba(0,0,0,0.6)',
                 }}
             >
-                <Text className="text-white text-xs font-medium">
+                <ThemedText weight="medium" className="text-white text-xs">
                     {phase === 'before' && 'Silmek istediğiniz alanı çizin'}
                     {phase === 'painting' && 'Boyama...'}
                     {phase === 'painted' && 'Seçildi ✓'}
                     {phase === 'removing' && 'Siliniyor...'}
                     {phase === 'after' && 'Tamamlandı! ✨'}
-                </Text>
+                </ThemedText>
             </MotiView>
         </View>
     );
@@ -304,10 +304,10 @@ const SliderComparison = ({
 
             {/* Labels */}
             <View className="absolute top-3 left-3 bg-black/50 px-2 py-1 rounded-full">
-                <Text className="text-white text-xs">Önce</Text>
+                <ThemedText className="text-white text-xs">Önce</ThemedText>
             </View>
             <View className="absolute top-3 right-3 bg-primary px-2 py-1 rounded-full">
-                <Text className="text-white text-xs">Sonra</Text>
+                <ThemedText className="text-white text-xs">Sonra</ThemedText>
             </View>
 
             {/* Slider Line/Handle Removed as per request */}
@@ -388,14 +388,14 @@ export default function OnboardingScreen() {
                     </MotiView>
 
                     {/* Title */}
-                    <Text className="text-2xl font-bold text-foreground mb-2 text-center">
+                    <ThemedText weight="bold" className="text-2xl text-foreground mb-2 text-center">
                         {slides[currentSlide].title}
-                    </Text>
+                    </ThemedText>
 
                     {/* Description */}
-                    <Text className="text-muted-foreground text-base text-center leading-relaxed px-4">
+                    <ThemedText className="text-muted-foreground text-base text-center leading-relaxed px-4">
                         {slides[currentSlide].description}
-                    </Text>
+                    </ThemedText>
                 </MotiView>
             </View>
 
@@ -431,9 +431,9 @@ export default function OnboardingScreen() {
                 {/* Skip Link */}
                 {currentSlide < slides.length - 1 && (
                     <TouchableOpacity onPress={skip} className="mt-4 py-2">
-                        <Text className="text-muted-foreground text-center font-medium">
+                        <ThemedText weight="medium" className="text-muted-foreground text-center">
                             Tanıtımı Atla
-                        </Text>
+                        </ThemedText>
                     </TouchableOpacity>
                 )}
             </View>
