@@ -46,6 +46,12 @@ export const exteriorFarmhouse = require("./images/onboarding/exterior-farmhouse
 export const exteriorCyberpunk = require("./images/onboarding/exterior-cyberpunk.png");
 export const exteriorVictorian = require("./images/onboarding/exterior-victorian.png");
 
+export const gardenReference = require("./images/onboarding/garden-reference.png");
+export const gardenModern = require("./images/onboarding/garden-modern.png");
+export const gardenJapanese = require("./images/onboarding/garden-japanese.png");
+export const gardenTropical = require("./images/onboarding/garden-tropical.png");
+export const gardenEnglish = require("./images/onboarding/garden-english.png");
+
 // Inspiration assets
 export const inspirationBefore1 = require("./images/inspiration/before-1.jpg");
 export const inspirationAfter1 = require("./images/inspiration/after-1.jpg");

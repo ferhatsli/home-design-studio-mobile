@@ -14,11 +14,11 @@ import Animated, {
 import { ThemedText } from "@/components/ui";
 import { PillButton } from "@/components/ui/PillButton";
 import {
-    exteriorReference,
-    exteriorModern,
-    exteriorFarmhouse,
-    exteriorCyberpunk,
-    exteriorVictorian,
+    gardenReference,
+    gardenModern,
+    gardenJapanese,
+    gardenTropical,
+    gardenEnglish,
 } from "@/assets";
 
 const { width, height } = Dimensions.get("window");
@@ -27,11 +27,11 @@ const GRADIENT_HEIGHT = 120;
 
 // Image sequence array
 const STYLES = [
-    { name: "Referans", image: exteriorReference },
-    { name: "Modern", image: exteriorModern },
-    { name: "Çiftlik Evi", image: exteriorFarmhouse },
-    { name: "Cyberpunk", image: exteriorCyberpunk },
-    { name: "Viktorya", image: exteriorVictorian },
+    { name: "Referans", image: gardenReference },
+    { name: "Modern", image: gardenModern },
+    { name: "Japon", image: gardenJapanese },
+    { name: "Tropik", image: gardenTropical },
+    { name: "İngiliz", image: gardenEnglish },
 ];
 
 interface TransitionSlideProps {
@@ -108,7 +108,7 @@ const TransitionSlide: React.FC<TransitionSlideProps> = ({
     );
 };
 
-export default function ExteriorSlideScreen() {
+export default function GardenSlideScreen() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const router = useRouter();
 
@@ -120,13 +120,8 @@ export default function ExteriorSlideScreen() {
     };
 
     const handleNext = () => {
-        // Navigate to next slide (or tabs if last)
-        // Check if there are more slides. Based on previous, Object Removal was 2nd. 
-        // This is 3rd. Is there a 4th?
-        // Let's assume this goes to Tabs for now, or check if user has other plans.
-        // User said "first screen slider directly to this screen".
-        // Nav flow: Style -> Object -> Exterior -> Tabs (probably)
-        router.push("/onboarding/garden-slide");
+        // Navigate to final destination (Tabs)
+        router.push("/(tabs)");
     };
 
     // Calculate current pair
@@ -159,13 +154,13 @@ export default function ExteriorSlideScreen() {
                         className="text-foreground mb-3 text-center"
                         style={{ fontSize: 35, lineHeight: 38, fontWeight: "800" }}
                     >
-                        Dış Cephe Tasarımı
+                        Bahçe Düzenleme
                     </ThemedText>
                     <ThemedText
                         className="text-center"
                         style={{ fontSize: 16, lineHeight: 24, color: "#1a1a1aff" }}
                     >
-                        Evinizin dış görünümünü yapay zeka ile{"\n"}saniyeler içinde yenileyin
+                        Hayalinizdeki bahçeye yapay zeka ile{"\n"}anında ulaşın
                     </ThemedText>
                 </View>
 
