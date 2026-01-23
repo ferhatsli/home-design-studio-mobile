@@ -32,6 +32,19 @@ export const colorAfter = require("./images/onboarding/color-after.jpg");
 export const colorBefore = require("./images/onboarding/color-before.jpg");
 export const objectAfter = require("./images/onboarding/object-after.jpg");
 export const objectBefore = require("./images/onboarding/object-before.jpg");
+export const roomReference = require("./images/onboarding/room_reference.png");
+export const roomModern = require("./images/onboarding/room_modern.png");
+export const roomScandinavian = require("./images/onboarding/room_scandinavian.png");
+export const roomMinimalist = require("./images/onboarding/room_minimalist.png");
+export const roomIndustrial = require("./images/onboarding/room_industrial.png");
+export const removeObjBefore = require("./images/onboarding/remove-obj-before-fixed.png");
+export const removeObjAfter = require("./images/onboarding/remove-obj-after-fixed.png");
+
+export const exteriorReference = require("./images/onboarding/exterior-reference.png");
+export const exteriorModern = require("./images/onboarding/exterior-modern.png");
+export const exteriorFarmhouse = require("./images/onboarding/exterior-farmhouse.png");
+export const exteriorCyberpunk = require("./images/onboarding/exterior-cyberpunk.png");
+export const exteriorVictorian = require("./images/onboarding/exterior-victorian.png");
 
 // Inspiration assets
 export const inspirationBefore1 = require("./images/inspiration/before-1.jpg");
