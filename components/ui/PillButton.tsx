@@ -45,6 +45,12 @@ export const PillButton: React.FC<PillButtonProps> = ({
         lg: "py-4 px-8",
     };
 
+    const borderRadiusStyles = {
+        sm: 24,
+        md: 28,
+        lg: 32,
+    };
+
     const textSizeStyles = {
         sm: "text-sm",
         md: "text-base",
@@ -89,7 +95,8 @@ export const PillButton: React.FC<PillButtonProps> = ({
                     }
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    className={`rounded-full ${sizeStyles[size]} shadow-lg`}
+                    className={`${sizeStyles[size]} shadow-lg`}
+                    style={{ borderRadius: borderRadiusStyles[size] }}
                 >
                     {renderContent()}
                 </LinearGradient>

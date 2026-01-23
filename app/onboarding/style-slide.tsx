@@ -120,7 +120,7 @@ export default function OnboardingStyleScreen() {
     };
 
     const handleNext = () => {
-        router.push("/(tabs)");
+        router.push("/onboarding/object-removal-slide");
     };
 
     // Calculate current pair
