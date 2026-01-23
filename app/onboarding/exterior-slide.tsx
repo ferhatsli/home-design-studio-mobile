@@ -1,6 +1,7 @@
 
-import React, { useState, useEffect } from "react";
-import { View, Image, Dimensions, ImageSourcePropType } from "react-native";
+import React, { useState, useEffect, useMemo } from "react";
+import { View, Dimensions } from "react-native";
+import { Image, ImageSource } from "expo-image";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -10,6 +11,7 @@ import Animated, {
     withTiming,
     Easing,
     runOnJS,
+    withDelay,
 } from "react-native-reanimated";
 import { ThemedText } from "@/components/ui";
 import { PillButton } from "@/components/ui/PillButton";
@@ -34,118 +36,112 @@ const STYLES = [
     { name: "Viktorya", image: exteriorVictorian },
 ];
 
-interface TransitionSlideProps {
-    beforeImage: ImageSourcePropType;
-    afterImage: ImageSourcePropType;
-    onAnimationComplete: () => void;
-}
-
-const TransitionSlide: React.FC<TransitionSlideProps> = ({
-    beforeImage,
-    afterImage,
-    onAnimationComplete,
-}) => {
-    const sliderPosition = useSharedValue(100);
-
-    useEffect(() => {
-        // Start animation immediately
-        sliderPosition.value = withTiming(
-            0,
-            { duration: 2500, easing: Easing.inOut(Easing.ease) },
-            (finished) => {
-                if (finished) {
-                    runOnJS(onAnimationComplete)();
-                }
-            }
-        );
-    }, []);
-
-    const clipStyle = useAnimatedStyle(() => ({
-        width: `${sliderPosition.value}%`,
-    }));
-
-    return (
-        <View
-            className="relative overflow-hidden"
-            style={{ height: IMAGE_HEIGHT, width: width }}
-        >
-            {/* After Image (The one revealed as slider moves left) */}
-            <Image
-                source={afterImage}
-                style={{ width: width, height: IMAGE_HEIGHT }}
-                resizeMode="cover"
-            />
-
-            {/* Before Image (The one closing/being covered) - clipped from LEFT */}
-            <Animated.View
-                className="absolute top-0 left-0 bottom-0 overflow-hidden"
-                style={clipStyle}
-            >
-                <Image
-                    source={beforeImage}
-                    style={{ width: width, height: IMAGE_HEIGHT }}
-                    resizeMode="cover"
-                />
-            </Animated.View>
-
-            {/* Gradient Fade at Bottom */}
-            <LinearGradient
-                colors={[
-                    "transparent",
-                    "rgba(255,255,255,0.3)",
-                    "rgba(255,255,255,0.8)",
-                    "#ffffff",
-                ]}
-                style={{
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: GRADIENT_HEIGHT,
-                }}
-            />
-        </View>
-    );
-};
-
 export default function ExteriorSlideScreen() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const router = useRouter();
+    const sliderPosition = useSharedValue(100);
 
-    const handleAnimationComplete = () => {
-        // Add a small delay before starting the next one for better UX
+    // All unique images for preloading
+    const allImages = useMemo(() => STYLES.map(s => s.image), []);
+
+    useEffect(() => {
+        const runAnimation = () => {
+            // Reset slider to right
+            sliderPosition.value = 100;
+
+            // Animate to left
+            sliderPosition.value = withDelay(
+                100,
+                withTiming(0, { duration: 2500, easing: Easing.inOut(Easing.ease) }, (finished) => {
+                    if (finished) {
+                        runOnJS(advanceToNext)();
+                    }
+                })
+            );
+        };
+
+        runAnimation();
+    }, [currentIndex]);
+
+    const advanceToNext = () => {
         setTimeout(() => {
             setCurrentIndex((prev) => (prev + 1) % STYLES.length);
         }, 500);
     };
 
     const handleNext = () => {
-        // Navigate to next slide (or tabs if last)
-        // Check if there are more slides. Based on previous, Object Removal was 2nd. 
-        // This is 3rd. Is there a 4th?
-        // Let's assume this goes to Tabs for now, or check if user has other plans.
-        // User said "first screen slider directly to this screen".
-        // Nav flow: Style -> Object -> Exterior -> Tabs (probably)
         router.push("/onboarding/garden-slide");
     };
 
-    // Calculate current pair
-    const beforeStyle = STYLES[currentIndex];
-    const afterStyle = STYLES[(currentIndex + 1) % STYLES.length];
+    const clipStyle = useAnimatedStyle(() => ({
+        width: `${sliderPosition.value}%`,
+    }));
+
+    // Current images
+    const beforeImage = STYLES[currentIndex].image;
+    const afterImage = STYLES[(currentIndex + 1) % STYLES.length].image;
 
     return (
         <View className="flex-1 bg-white">
+            {/* Preload all images in background (hidden) */}
+            <View style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}>
+                {allImages.map((img, idx) => (
+                    <Image
+                        key={idx}
+                        source={img}
+                        style={{ width: 1, height: 1 }}
+                        priority="high"
+                        cachePolicy="memory-disk"
+                    />
+                ))}
+            </View>
+
             {/* Image Container */}
             <View style={{ height: IMAGE_HEIGHT }}>
-                {/* 
-                  Key prop is CRITICAL here. 
-                */}
-                <TransitionSlide
-                    key={currentIndex}
-                    beforeImage={beforeStyle.image}
-                    afterImage={afterStyle.image}
-                    onAnimationComplete={handleAnimationComplete}
-                />
+                <View
+                    className="relative overflow-hidden"
+                    style={{ height: IMAGE_HEIGHT, width: width }}
+                >
+                    {/* After Image (Background - revealed) */}
+                    <Image
+                        source={afterImage}
+                        style={{ width: width, height: IMAGE_HEIGHT }}
+                        contentFit="cover"
+                        priority="high"
+                        cachePolicy="memory-disk"
+                    />
+
+                    {/* Before Image (Foreground - clipped) */}
+                    <Animated.View
+                        className="absolute top-0 left-0 bottom-0 overflow-hidden"
+                        style={clipStyle}
+                    >
+                        <Image
+                            source={beforeImage}
+                            style={{ width: width, height: IMAGE_HEIGHT }}
+                            contentFit="cover"
+                            priority="high"
+                            cachePolicy="memory-disk"
+                        />
+                    </Animated.View>
+
+                    {/* Gradient Fade at Bottom */}
+                    <LinearGradient
+                        colors={[
+                            "transparent",
+                            "rgba(255,255,255,0.3)",
+                            "rgba(255,255,255,0.8)",
+                            "#ffffff",
+                        ]}
+                        style={{
+                            position: "absolute",
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            height: GRADIENT_HEIGHT,
+                        }}
+                    />
+                </View>
             </View>
 
             {/* Bottom Content */}

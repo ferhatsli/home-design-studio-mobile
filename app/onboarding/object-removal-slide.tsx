@@ -1,5 +1,6 @@
-import React, { useEffect } from "react";
-import { View, Image, Dimensions } from "react-native";
+import React, { useEffect, useMemo } from "react";
+import { View, Dimensions } from "react-native";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -7,12 +8,9 @@ import Animated, {
     useSharedValue,
     useAnimatedStyle,
     withTiming,
-    useDerivedValue,
-    withSequence,
     withDelay,
     useAnimatedProps,
     interpolate,
-    Extrapolate,
 } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
 import { ThemedText } from "@/components/ui";
@@ -33,6 +31,9 @@ export default function ObjectRemovalSlide() {
     const paintProgress = useSharedValue(0);
     const fadeProgress = useSharedValue(0);
 
+    // All images for preloading
+    const allImages = useMemo(() => [removeObjBefore, removeObjAfter], []);
+
     useEffect(() => {
         const runAnimation = () => {
             // Reset
@@ -48,13 +49,7 @@ export default function ObjectRemovalSlide() {
             // 2. Wait for paint to finish, then Fade Out Before + Paint (0 -> 1)
             fadeProgress.value = withDelay(
                 2800,
-                withTiming(1, { duration: 800 }, (finished) => {
-                    if (finished) {
-                        // Loop: restart after short delay
-                        // We can't use recursion directly in safe-area context freely without caution, 
-                        // but settimeout is fine here.
-                    }
-                })
+                withTiming(1, { duration: 800 })
             );
         };
 
@@ -80,6 +75,19 @@ export default function ObjectRemovalSlide() {
 
     return (
         <View className="flex-1 bg-white">
+            {/* Preload all images in background (hidden) */}
+            <View style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}>
+                {allImages.map((img, idx) => (
+                    <Image
+                        key={idx}
+                        source={img}
+                        style={{ width: 1, height: 1 }}
+                        priority="high"
+                        cachePolicy="memory-disk"
+                    />
+                ))}
+            </View>
+
             {/* Image Container */}
             <View style={{ height: IMAGE_HEIGHT }}>
                 <View
@@ -90,7 +98,9 @@ export default function ObjectRemovalSlide() {
                     <Image
                         source={removeObjAfter}
                         style={{ width: width, height: IMAGE_HEIGHT }}
-                        resizeMode="cover"
+                        contentFit="cover"
+                        priority="high"
+                        cachePolicy="memory-disk"
                     />
 
                     {/* Layer 2: Before Image + Paint Overlay (Foreground Group) */}
@@ -103,7 +113,9 @@ export default function ObjectRemovalSlide() {
                         <Image
                             source={removeObjBefore}
                             style={{ width: width, height: IMAGE_HEIGHT }}
-                            resizeMode="cover"
+                            contentFit="cover"
+                            priority="high"
+                            cachePolicy="memory-disk"
                         />
 
                         <Svg height={IMAGE_HEIGHT} width={width} style={SimpleStyle.absolute}>
